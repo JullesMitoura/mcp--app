@@ -1,2 +1,6 @@
+# Python virtual environment and variables
 .venv
 .env
+
+# db -> you need to create the db using db_create.ipynb
+clients.db 
