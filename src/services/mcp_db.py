@@ -3,7 +3,6 @@ from mcp.server.fastmcp import FastMCP
 from typing import Optional
 
 import sqlite3
-
 import logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
@@ -12,8 +11,9 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 mcp = FastMCP("Clients")
 
 # database connection
+DB_PATH = "/Users/mitoura/Desktop/Repositories/app--mcp/clients.db"
 def get_db_connection():
-    conn = sqlite3.connect("clients.db")
+    conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     return conn
 
@@ -29,6 +29,11 @@ def execute_query(conn: sqlite3.Connection, query: str, params: tuple = ()):
     cursor = conn.cursor()
     cursor.execute(query, params)
     conn.commit()
+    return cursor
+
+def fetch_query(conn: sqlite3.Connection, query: str, params: tuple = ()):
+    cursor = conn.cursor()
+    cursor.execute(query, params)
     return cursor
 
 # pydantic models
@@ -70,7 +75,7 @@ def create_client(client: ClientBase) -> str:
 
         # create a table if not exists
         create_table(conn, """
-        CREATE TABLE IF NOT EXISTS clients_tb (
+        CREATE TABLE IF NOT EXISTS clients (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL,
             email TEXT NOT NULL UNIQUE
@@ -94,15 +99,21 @@ def create_client(client: ClientBase) -> str:
 def get_client(id: int) -> str:
     """
     Function to get information about a client using id to search in database.
-    The input id must to be a interger.
+    The input id must be an integer.
     This function returns a JSON or an error message.
     """
     try:
+        client_id = int(id)
+        logging.info(f"Fetching client with ID: {client_id}")
+    except ValueError:
+        return ClientResponse(error=f"Invalid id: {id}").model_dump_json()
+
+    try:
         conn = get_db_connection()
-        cursor = execute_query(conn, "SELECT * FROM clients_tb WHERE id = ?", (id,))
+        cursor = fetch_query(conn, "SELECT * FROM clients WHERE id = ?", (client_id,))
         client = cursor.fetchone()
         if client:
-            response = ClientDB(**client)
+            response = ClientDB(**dict(client))  # converte Row para dict
             return response.model_dump_json()
         else:
             error = ClientResponse(error="Client not found").model_dump_json()
@@ -113,6 +124,12 @@ def get_client(id: int) -> str:
         logging.error(f"Error getting client: {error}")
         return error
 
+@mcp.prompt()
+def system_prompt() -> str:
+    # return the system prompt
+    return """
+    You are a helpful assistant called JullesBot. Call tools as needed.
+    """
 
 if __name__ == "__main__":
     mcp.run(transport="streamable-http")

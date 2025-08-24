@@ -1,3 +1,7 @@
 pydantic==2.11.7
 mcp==1.9.1
 SQLAlchemy==2.0.41
+langchain-mcp-adapters==0.1.1
+langgraph==0.6.6
+langchain==0.3.25
+langchain-openai==0.3.31
