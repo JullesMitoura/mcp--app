@@ -1,4 +1,5 @@
 pydantic==2.11.7
+pydantic-ai==0.2.9
 mcp==1.9.1
 SQLAlchemy==2.0.41
 langchain-mcp-adapters==0.1.1
