@@ -4,3 +4,8 @@
 
 # db -> you need to create the db using db_create.ipynb
 clients.db 
+
+
+# remove cache files
+__pycache__/
+*.pyc
